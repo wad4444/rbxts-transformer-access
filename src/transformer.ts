@@ -23,11 +23,9 @@ export class TransformContext {
 }
 
 type TupleToUnion<T extends unknown[]> = T[number];
-type NodeValidators<T> = T extends [infer A, ...infer B]
-	? [(node: A) => node is A, ...NodeValidators<B>]
-	: [];
+type NodeValidators<T> = { [K in keyof T]: (node: any) => node is T[K] };
 
-function isTuple<T extends ts.Node[]>(...args: NodeValidators<T>) {
+function isTuple<T extends ts.Node[] | []>(...args: NodeValidators<T>) {
 	return (node: ts.Node): node is TupleToUnion<T> => {
 		for (const validator of args) {
 			if (validator(node)) return true;
@@ -64,7 +62,7 @@ function visitPropertyAccessExpression(
 	if (!symbol || !symbol.valueDeclaration) return context.transform(node);
 
 	const declaration = symbol.valueDeclaration;
-	const check = isTuple<[ts.MethodDeclaration, ts.MethodSignature]>(
+	const check = isTuple(
 		ts.isMethodDeclaration,
 		ts.isMethodSignature,
 	);
