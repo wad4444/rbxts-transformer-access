@@ -1,12 +1,12 @@
 {
 	"name": "rbxts-transformer-access",
-	"version": "1.0.1",
+	"version": "1.0.3",
 	"description": "Allows you to directly index a method without calling it.",
 	"main": "out/index.js",
 	"author": "wAD",
 	"license": "ISC",
 	"peerDependencies": {
-		"typescript": "^5.5.4"
+		"typescript": "^5.2.2"
 	},
 	"scripts": {
 		"prepare": "npm run build",
@@ -16,7 +16,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^1.8.3",
 		"@types/node": "^22.0.2",
-		"@types/ts-expose-internals": "npm:ts-expose-internals@^5.5.4"
+		"@types/ts-expose-internals": "npm:ts-expose-internals@^5.2.2"
 	},
 	"files": [
 		"out"
