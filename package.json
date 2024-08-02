@@ -1,7 +1,7 @@
 {
-	"name": "rbxts-transformer-callback",
+	"name": "rbxts-transformer-access",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Allows you to directly index a method without calling it.",
 	"main": "out/index.js",
 	"author": "wAD",
 	"license": "ISC",
