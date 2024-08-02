@@ -22,6 +22,34 @@ export class TransformContext {
 	}
 }
 
+type TupleToUnion<T extends unknown[]> = T[number];
+type NodeValidators<T> = T extends [infer A, ...infer B]
+	? [(node: A) => node is A, ...NodeValidators<B>]
+	: [];
+
+function isTuple<T extends ts.Node[]>(...args: NodeValidators<T>) {
+	return (node: ts.Node): node is TupleToUnion<T> => {
+		for (const validator of args) {
+			if (validator(node)) return true;
+		}
+		return false;
+	};
+}
+
+function hasAncestor(
+	node: ts.Node,
+	check: (node: ts.Node) => node is ts.Node,
+) {
+	let currentNode: ts.Node = node;
+	while (currentNode.parent) {
+		if (check(currentNode.parent)) {
+			return true;
+		}
+		currentNode = currentNode.parent;
+	}
+	return false;
+}
+
 function visitPropertyAccessExpression(
 	context: TransformContext,
 	node: ts.PropertyAccessExpression,
@@ -32,7 +60,12 @@ function visitPropertyAccessExpression(
 	if (!symbol || !symbol.valueDeclaration) return context.transform(node);
 
 	const declaration = symbol.valueDeclaration;
-	if (!ts.isMethodDeclaration(declaration)) return context.transform(node);
+	const check = isTuple<[ts.MethodDeclaration, ts.MethodSignature]>(
+		ts.isMethodDeclaration,
+		ts.isMethodSignature,
+	);
+	if (!check(declaration)) return context.transform(node);
+	if (hasAncestor(node, ts.isCallExpression)) return context.transform(node);
 
 	return factory.createParenthesizedExpression(
 		factory.createArrowFunction(
