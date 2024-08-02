@@ -22,6 +22,20 @@ export class TransformContext {
 	}
 }
 
+function hasAncestor(
+	node: ts.Node,
+	check: (node: ts.Node) => node is ts.Node,
+) {
+	let currentNode: ts.Node = node;
+	while (currentNode.parent) {
+		if (check(currentNode.parent)) {
+			return true;
+		}
+		currentNode = currentNode.parent;
+	}
+	return false;
+}
+
 function visitPropertyAccessExpression(
 	context: TransformContext,
 	node: ts.PropertyAccessExpression,
@@ -33,6 +47,7 @@ function visitPropertyAccessExpression(
 
 	const declaration = symbol.valueDeclaration;
 	if (!ts.isMethodDeclaration(declaration)) return context.transform(node);
+	if (hasAncestor(node, ts.isCallExpression)) return context.transform(node);
 
 	return factory.createParenthesizedExpression(
 		factory.createArrowFunction(

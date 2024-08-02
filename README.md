@@ -22,3 +22,9 @@ const foo = {
 
 Players.PlayerAdded.Connect(foo.bar)
 ```
+
+## NOTES:
+* Transformer compiles a method indexation to a wrapper function, so runtime checks similar to those will fail:
+```ts
+foo.bar === foo.bar
+```

@@ -1,6 +1,6 @@
 {
 	"name": "rbxts-transformer-access",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Allows you to directly index a method without calling it.",
 	"main": "out/index.js",
 	"author": "wAD",
