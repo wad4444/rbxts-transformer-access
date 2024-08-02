@@ -36,10 +36,13 @@ function isTuple<T extends ts.Node[]>(...args: NodeValidators<T>) {
 	};
 }
 
-function hasParent(node: ts.Node, check: (node: ts.Node) => node is ts.Node) {
+function isInCallExpression(node: ts.Node): boolean {
 	let currentNode: ts.Node = node;
 	while (currentNode.parent) {
-		if (check(currentNode.parent)) {
+		if (
+			ts.isCallExpression(currentNode.parent) &&
+			currentNode.parent.expression === currentNode
+		) {
 			return true;
 		}
 		if (ts.isParenthesizedExpression(currentNode.parent)) {
@@ -66,7 +69,7 @@ function visitPropertyAccessExpression(
 		ts.isMethodSignature,
 	);
 	if (!check(declaration)) return context.transform(node);
-	if (hasParent(node, ts.isCallExpression)) return context.transform(node);
+	if (isInCallExpression(node)) return context.transform(node);
 
 	return factory.createParenthesizedExpression(
 		factory.createArrowFunction(
