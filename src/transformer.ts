@@ -1,6 +1,5 @@
 import ts from "typescript";
 
-// biome-ignore lint/complexity/noBannedTypes: <explanation>
 export type TransformerConfig = {};
 
 export class TransformContext {
