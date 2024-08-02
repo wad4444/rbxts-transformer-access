@@ -1,4 +1,4 @@
-# rbxts-transformer-services
+# rbxts-transformer-access
 Allows you to directly index a method without calling it,
 allowing you to easily pass it to another function, reducing the boilerplate code:
 
