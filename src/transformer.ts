@@ -81,8 +81,9 @@ function visitPropertyAccessExpression(
 			parameters,
 			undefined,
 			factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-			factory.createCallExpression(
+			factory.createCallChain(
 				node,
+				node.questionDotToken,
 				declaration.typeParameters?.map((typeParameter) =>
 					factory.createTypeReferenceNode(
 						factory.createIdentifier(typeParameter.name.getText()),
