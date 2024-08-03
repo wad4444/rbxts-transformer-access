@@ -42,7 +42,10 @@ function isInCallExpression(node: ts.Node): boolean {
 		if (ts.isCallExpression(parent) && parent.expression === currentNode) {
 			return true;
 		}
-		if (isTuple(parent, ts.isAsExpression, ts.isParenthesizedExpression) && parent.expression === currentNode) {
+		if (
+			isTuple(parent, ts.isAsExpression, ts.isParenthesizedExpression) &&
+			parent.expression === currentNode
+		) {
 			currentNode = parent;
 			continue;
 		}
@@ -57,19 +60,25 @@ function visitPropertyAccessExpression(
 ) {
 	const { program, factory } = context;
 
-	const symbol = program.getTypeChecker().getSymbolAtLocation(node);
-	if (!symbol || !symbol.valueDeclaration) return context.transform(node);
+	const typeChecker = program.getTypeChecker();
+	const nodeSymbol = typeChecker.getSymbolAtLocation(node);
+	if (!nodeSymbol || !nodeSymbol.valueDeclaration)
+		return context.transform(node);
 
-	const declaration = symbol.valueDeclaration;
+	const declaration = nodeSymbol.valueDeclaration;
 	if (!isTuple(declaration, ts.isMethodDeclaration, ts.isMethodSignature))
 		return context.transform(node);
 	if (isInCallExpression(node)) return context.transform(node);
+
+	const parameters = declaration.parameters.filter((parameter) => {
+		return parameter.symbol.escapedName !== "this";
+	});
 
 	return factory.createParenthesizedExpression(
 		factory.createArrowFunction(
 			undefined,
 			declaration.typeParameters,
-			declaration.parameters,
+			parameters,
 			undefined,
 			factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
 			factory.createCallExpression(
@@ -79,7 +88,7 @@ function visitPropertyAccessExpression(
 						factory.createIdentifier(typeParameter.name.getText()),
 					),
 				),
-				declaration.parameters.map((parameter) =>
+				parameters.map((parameter) =>
 					factory.createIdentifier(parameter.name.getText()),
 				),
 			),
