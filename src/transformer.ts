@@ -35,11 +35,14 @@ function isTuple<T extends ts.Node[] | []>(
 	return false;
 }
 
-function isInCallExpression(node: ts.Node): boolean {
+function isInvalidContext(node: ts.Node): boolean {
 	let currentNode: ts.Node = node;
 	while (currentNode.parent) {
 		const parent = currentNode.parent;
 		if (ts.isCallExpression(parent) && parent.expression === currentNode) {
+			return true;
+		}
+		if (ts.isBinaryExpression(parent) && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
 			return true;
 		}
 		if (
@@ -68,7 +71,7 @@ function visitPropertyAccessExpression(
 	const declaration = nodeSymbol.valueDeclaration;
 	if (!isTuple(declaration, ts.isMethodDeclaration, ts.isMethodSignature))
 		return context.transform(node);
-	if (isInCallExpression(node)) return context.transform(node);
+	if (isInvalidContext(node)) return context.transform(node);
 
 	const parameters = declaration.parameters.filter((parameter) => {
 		return parameter.symbol.escapedName !== "this";
