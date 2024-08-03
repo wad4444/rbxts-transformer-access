@@ -25,26 +25,25 @@ export class TransformContext {
 type TupleToUnion<T extends unknown[]> = T[number];
 type NodeValidators<T> = { [K in keyof T]: (node: any) => node is T[K] };
 
-function isTuple<T extends ts.Node[] | []>(...args: NodeValidators<T>) {
-	return (node: ts.Node): node is TupleToUnion<T> => {
-		for (const validator of args) {
-			if (validator(node)) return true;
-		}
-		return false;
-	};
+function isTuple<T extends ts.Node[] | []>(
+	node: ts.Node,
+	...args: NodeValidators<T>
+): node is TupleToUnion<T> {
+	for (const validator of args) {
+		if (validator(node)) return true;
+	}
+	return false;
 }
 
 function isInCallExpression(node: ts.Node): boolean {
 	let currentNode: ts.Node = node;
 	while (currentNode.parent) {
-		if (
-			ts.isCallExpression(currentNode.parent) &&
-			currentNode.parent.expression === currentNode
-		) {
+		const parent = currentNode.parent;
+		if (ts.isCallExpression(parent) && parent.expression === currentNode) {
 			return true;
 		}
-		if (ts.isParenthesizedExpression(currentNode.parent)) {
-			currentNode = currentNode.parent;
+		if (isTuple(parent, ts.isAsExpression, ts.isParenthesizedExpression) && parent.expression === currentNode) {
+			currentNode = parent;
 			continue;
 		}
 		break;
@@ -62,11 +61,8 @@ function visitPropertyAccessExpression(
 	if (!symbol || !symbol.valueDeclaration) return context.transform(node);
 
 	const declaration = symbol.valueDeclaration;
-	const check = isTuple(
-		ts.isMethodDeclaration,
-		ts.isMethodSignature,
-	);
-	if (!check(declaration)) return context.transform(node);
+	if (!isTuple(declaration, ts.isMethodDeclaration, ts.isMethodSignature))
+		return context.transform(node);
 	if (isInCallExpression(node)) return context.transform(node);
 
 	return factory.createParenthesizedExpression(
